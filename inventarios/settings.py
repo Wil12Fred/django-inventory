@@ -20,12 +20,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'mqu(vluy4eo1_mf-^q=q%vj9hyw4^b3*7pk2@qw!9^g!mz2!7p'
+# Read from the environment; the fallback is for local development only.
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'dev-only-insecure-secret-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', '1') == '1'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -76,16 +77,28 @@ LOGIN_URL = '/iniciar_sesion'
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'inventarios',
-        'USER': 'scrum',
-        'PASSWORD': '1234',
-        'HOST': 'localhost',
-        'PORT': '',
+# SQLite by default; set INVENTARIOS_DB_ENGINE=postgres to use PostgreSQL
+# (the original setup: database "inventarios", user "scrum").
+if os.environ.get('INVENTARIOS_DB_ENGINE') == 'postgres':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('INVENTARIOS_DB_NAME', 'inventarios'),
+            'USER': os.environ.get('INVENTARIOS_DB_USER', 'scrum'),
+            'PASSWORD': os.environ.get('INVENTARIOS_DB_PASSWORD', ''),
+            'HOST': os.environ.get('INVENTARIOS_DB_HOST', 'localhost'),
+            'PORT': os.environ.get('INVENTARIOS_DB_PORT', ''),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Fixtures dir
 
