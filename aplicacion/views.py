@@ -533,7 +533,7 @@ def analisisAbcView(request):
     from django.db import connection
     cursor = connection.cursor()
 
-    cursor.execute("SELECT producto.nombre,analisis.cantidad,analisis.ventas_corrientes_pct, CASE WHEN ventas_corrientes_pct<=0.8 THEN 'A' ELSE (CASE WHEN ventas_corrientes_pct<=0.95 THEN 'B' ELSE 'C' END) END AS GrupoABC FROM (SELECT *, SUM(cantidad::double precision) OVER (ORDER BY cantidad DESC)/(SUM(cantidad) OVER()) AS ventas_corrientes_pct FROM aplicacion_orden) AS analisis INNER JOIN aplicacion_producto AS producto ON analisis.id = producto.id")
+    cursor.execute("SELECT producto.nombre,analisis.cantidad,analisis.ventas_corrientes_pct, CASE WHEN ventas_corrientes_pct<=0.8 THEN 'A' ELSE (CASE WHEN ventas_corrientes_pct<=0.95 THEN 'B' ELSE 'C' END) END AS GrupoABC FROM (SELECT *, SUM(CAST(cantidad AS DOUBLE PRECISION)) OVER (ORDER BY cantidad DESC)/(SUM(cantidad) OVER()) AS ventas_corrientes_pct FROM aplicacion_orden) AS analisis INNER JOIN aplicacion_producto AS producto ON analisis.id = producto.id")
     analisis = cursor.fetchall()
     contexto = {"ordenes": analisis}
 
