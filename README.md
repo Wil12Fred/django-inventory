@@ -1,7 +1,7 @@
 # IS2-Inventarios
 
 Inventory management web app built with Django for the *Ingeniería de
-Software II* course (UCSP), developed by a Scrum team of seven over several
+Software II* university course, developed by a Scrum team of seven over several
 sprints. UI is in Spanish.
 
 Features: login (rate-limited to 5 attempts/minute per IP), products,
