@@ -147,3 +147,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Outgoing mail (purchase orders are e-mailed to the supplier).
+EMAIL_HOST = os.environ.get('INVENTARIOS_EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('INVENTARIOS_EMAIL_PORT', '465'))
+EMAIL_USE_SSL = os.environ.get('INVENTARIOS_EMAIL_USE_SSL', '1') == '1'
+EMAIL_HOST_USER = os.environ.get('INVENTARIOS_EMAIL_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('INVENTARIOS_EMAIL_PASSWORD', '')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER or 'webmaster@localhost'

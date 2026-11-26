@@ -7,9 +7,7 @@ from django.views.generic import View
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+from django.core.mail import send_mail
 from inventarios import settings
 from django.contrib.auth import authenticate, login, logout
 
@@ -273,36 +271,18 @@ def registrarPedidoView(request):
             fecha_recibida=fecha_recibida_obtenida,
             cantidad=cantidad_obtenida)  # agregado para probar pedido
 
-        administrador = User.objects.get(nombre='administrador')
-
-        correo_emisor = administrador.correo
-        correo_emisor_contrasena = administrador.contrasena
-
-        correo_receptor = proveedor.correo
-
-        mensaje = MIMEMultipart('mixed')
-        mensaje['From'] = correo_emisor
-        mensaje['To'] = correo_receptor
-        mensaje['Subject'] = '[Pedido] - ' + producto.nombre
-
-        mensaje_texto = MIMEText(
-            'Cantidad: ' +
-            str(cantidad_obtenida),
-            'plain')
-        mensaje.attach(mensaje_texto)
-
+        # The sender account comes from settings (EMAIL_HOST_USER /
+        # EMAIL_HOST_PASSWORD); Django's User has no "nombre", "correo" or
+        # plain-text "contrasena" field to read it from.
         try:
-            servidor = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-            servidor.ehlo()
-            servidor.login(correo_emisor, correo_emisor_contrasena)
-            servidor.sendmail(
-                correo_emisor,
-                correo_receptor,
-                mensaje.as_string())
-            servidor.close()
+            send_mail(
+                '[Pedido] - ' + producto.nombre,
+                'Cantidad: ' + str(cantidad_obtenida),
+                settings.DEFAULT_FROM_EMAIL,
+                [proveedor.correo])
 
             print('Exito. Se ha enviado el correo')
-        except BaseException:
+        except Exception:
             print('Error. No se ha podido enviar el correo')
 
         return HttpResponseRedirect(reverse('inicio'))
@@ -512,6 +492,7 @@ def mostrarLugarView(request):
 
     return render(request, "verificar_producto.html", contexto)
 
+@login_required
 def deleteProductoView(request,id_producto):
     producto = Producto.objects.get(id=id_producto)
     contexto = {"producto": producto}
@@ -521,6 +502,7 @@ def deleteProductoView(request,id_producto):
     return render(request, "eliminar_producto.html", contexto)
 
 
+@login_required
 def reporteOrdenesView(request):
     ordenes = Orden.objects.all()
 
@@ -529,11 +511,12 @@ def reporteOrdenesView(request):
     return render(request, "ordenes.html", contexto)
 
 
+@login_required
 def analisisAbcView(request):
     from django.db import connection
     cursor = connection.cursor()
 
-    cursor.execute("SELECT producto.nombre,analisis.cantidad,analisis.ventas_corrientes_pct, CASE WHEN ventas_corrientes_pct<=0.8 THEN 'A' ELSE (CASE WHEN ventas_corrientes_pct<=0.95 THEN 'B' ELSE 'C' END) END AS GrupoABC FROM (SELECT *, SUM(CAST(cantidad AS DOUBLE PRECISION)) OVER (ORDER BY cantidad DESC)/(SUM(cantidad) OVER()) AS ventas_corrientes_pct FROM aplicacion_orden) AS analisis INNER JOIN aplicacion_producto AS producto ON analisis.id = producto.id")
+    cursor.execute("SELECT producto.nombre,analisis.cantidad,analisis.ventas_corrientes_pct, CASE WHEN ventas_corrientes_pct<=0.8 THEN 'A' ELSE (CASE WHEN ventas_corrientes_pct<=0.95 THEN 'B' ELSE 'C' END) END AS GrupoABC FROM (SELECT *, SUM(CAST(cantidad AS DOUBLE PRECISION)) OVER (ORDER BY cantidad DESC)/(SUM(cantidad) OVER()) AS ventas_corrientes_pct FROM aplicacion_orden) AS analisis INNER JOIN aplicacion_producto AS producto ON analisis.producto_id = producto.id")
     analisis = cursor.fetchall()
     contexto = {"ordenes": analisis}
 
