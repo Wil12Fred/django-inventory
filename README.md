@@ -1,38 +1,57 @@
 # IS2-Inventarios
 
-Dependencias:
+Inventory management web app built with Django for the *Ingeniería de
+Software II* course (UCSP), developed by a Scrum team of seven over several
+sprints. UI is in Spanish.
 
-- Python3
-- pipenv
-- postgres: user/password ("scrum"/"1234") db ("Inventarios")
+Features: login (rate-limited to 5 attempts/minute per IP), products,
+suppliers and supplier–product links, warehouses with shelves, purchase orders
+(e-mailing the supplier) and sales orders, plus reports: stock movement,
+products, suppliers, order lead times, a Chart.js sales chart and an **ABC
+analysis** of sales.
 
-Instalaci\'on de dependencias pip:
+## Run (SQLite)
 
-- pipenv shell
-- pipenv install
-- exit
+Requires [uv](https://docs.astral.sh/uv/).
 
-Ejecuci\'on:
+```bash
+uv sync
+uv run python manage.py migrate
+uv run python manage.py loaddata data_sprint3_01     # 345 sample rows
+uv run python manage.py createsuperuser
+uv run python manage.py runserver
+```
 
-- pipenv shell
-- python3 manage.py makemigrations applicacion
-- python3 manage.py migrate
-- python3 manage.py createsuperuser
-- python3 manage.py runserver
+Open <http://127.0.0.1:8000/> — it redirects to `/iniciar_sesion`.
 
+To use PostgreSQL as originally deployed, `uv sync --extra postgres` and set
+`INVENTARIOS_DB_ENGINE=postgres` plus the `INVENTARIOS_DB_*` variables (see
+`.env.example`). Bootstrap and Chart.js are loaded from public CDNs.
 
-Integrantes:
+## Tests
 
-- JonMoll: Mollapaza Jonathan
+```bash
+uv run python manage.py test aplicacion
+```
 
-- eyvind1: Osco Eyvind
+Smoke tests: login page, login-required redirect, login + product list with
+the fixture, and that the main report pages render.
 
-- aunesto17: Baylon Alexander
+## Layout
 
-- ltch23: Tong Luis
+```
+inventarios/    Django project (settings, urls)
+aplicacion/     the app: models, forms, views, gestor/repositorio helpers,
+                fixtures/data_sprint3_01.json, tests
+plantillas/     templates (Bootstrap 3)
+```
 
-- joaquingx: Garmendia Joaquin
+Known issues kept as-is: registering a *pedido* looks up the sender with
+`User.objects.get(nombre='administrador')`, a field Django's `User` does not
+have, so that flow fails before sending the e-mail.
 
-- darkar5555: Castro Rodrigo
+## Team
 
-- Wilber Cutire Sivincha
+JonMoll (Jonathan Mollapaza), eyvind1 (Eyvind Osco), aunesto17 (Alexander
+Baylon), ltch23 (Luis Tong), joaquingx (Joaquin Garmendia), darkar5555
+(Rodrigo Castro), Wilber Cutire Sivincha.
