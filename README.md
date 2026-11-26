@@ -1,4 +1,4 @@
-# IS2-Inventarios
+# django-inventory
 
 Inventory management web app built with Django for the *Ingeniería de
 Software II* university course, developed by a Scrum team of seven over several
